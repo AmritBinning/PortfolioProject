@@ -72,7 +72,7 @@ WHERE dea.continent IS NOT NULL
 ORDER BY Location, date
 
 
--- Using Ccommon Table Expression
+-- Using Common Table Expression
 
 WITH PopvsVac (Continent, Location, Date, Population, New_Vaccinations, Rolling_People_Vaccinated)
 AS
@@ -88,7 +88,7 @@ WHERE dea.continent IS NOT NULL
 Select *, (Rolling_People_Vaccinated/Population)*100
 From PopvsVac
 
--- Using Temp Table as alternate to CTE to perfrom above query
+-- Using Temp Table as alternate to CTE to perform above query
 
 DROP Table IF EXISTS #PercentPopulationVaccinated
 CREATE TABLE #PercentPopulationVaccinated
@@ -114,9 +114,7 @@ Select *, (Rolling_People_Vaccinated/Population)*100
 From #PercentPopulationVaccinated
 
 
-
-
--- Creating ViewS to store data to be used for visualisations
+-- Creating Views to store data to be used for visualisations
 
 CREATE VIEW PopulationVaccinated AS
 SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
