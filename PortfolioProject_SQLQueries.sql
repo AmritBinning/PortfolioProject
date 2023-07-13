@@ -1,4 +1,4 @@
-/****** Script for SelectTopNRows command from SSMS  ******/
+/****** Looking through the data about Covid Infections and Vaccinations  ******/
 
 -- Selecting the data that I will be using
 
@@ -71,71 +71,4 @@ JOIN PortfolioProject..CovidVaccinations AS vac
 WHERE dea.continent IS NOT NULL
 ORDER BY Location, date
 
-
--- Using Common Table Expression
-
-WITH PopvsVac (Continent, Location, Date, Population, New_Vaccinations, Rolling_People_Vaccinated)
-AS
-(
-SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
-SUM(CONVERT(int,vac.new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as Rolling_People_Vaccinated
-FROM PortfolioProject..CovidDeaths dea
-JOIN PortfolioProject..CovidVaccinations vac
-	ON dea.location = vac.location
-	AND dea.date = vac.date
-WHERE dea.continent IS NOT NULL
-)
-Select *, (Rolling_People_Vaccinated/Population)*100
-From PopvsVac
-
--- Using Temp Table as alternate to CTE to perform above query
-
-DROP Table IF EXISTS #PercentPopulationVaccinated
-CREATE TABLE #PercentPopulationVaccinated
-(
-Continent nvarchar(255),
-Location nvarchar(255),
-Date datetime,
-Population numeric,
-New_vaccinations numeric,
-Rolling_People_Vaccinated numeric
-)
-
-INSERT INTO #PercentPopulationVaccinated
-SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
-SUM(CONVERT(int,vac.new_vaccinations)) OVER (PARTITION BY dea.Location Order by dea.location, dea.Date) AS Rolling_People_Vaccinated
-FROM PortfolioProject..CovidDeaths AS dea
-JOIN PortfolioProject..CovidVaccinations AS vac
-	ON dea.location = vac.location
-	AND dea.date = vac.date
-
-
-Select *, (Rolling_People_Vaccinated/Population)*100
-From #PercentPopulationVaccinated
-
-
--- Creating Views to store data to be used for visualisations
-
-CREATE VIEW PopulationVaccinated AS
-SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
-SUM(CONVERT(int,vac.new_vaccinations)) OVER (PARTITION BY dea.Location Order by dea.location, dea.Date) AS RollingPeopleVaccinated
-FROM PortfolioProject..CovidDeaths AS dea
-JOIN PortfolioProject..CovidVaccinations AS vac
-	ON dea.location = vac.location
-	AND dea.date = vac.date
-WHERE dea.continent IS NOT NULL
-
- 
-CREATE VIEW ContinentHighestDeathCount AS
-SELECT continent, MAX(cast(Total_deaths as int)) as Total_Death_Count
-FROM PortfolioProject.dbo.CovidDeaths
-WHERE continent IS NOT NULL
-GROUP BY continent
-
-
-CREATE VIEW HighestDeathCountByPopulation AS
-SELECT Location, MAX(cast(Total_deaths as int)) as Total_Death_Count
-FROM PortfolioProject.dbo.CovidDeaths
-WHERE continent IS NOT NULL 
-GROUP BY Location
 
